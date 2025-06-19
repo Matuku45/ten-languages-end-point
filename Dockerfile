@@ -2,12 +2,13 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy csproj and restore as distinct layers
-COPY *.csproj ./
-RUN dotnet restore
+# Copy the .csproj file explicitly from the subfolder
+COPY HelloWorldAspNetCore/*.csproj ./HelloWorldAspNetCore/
+RUN dotnet restore ./HelloWorldAspNetCore/HelloWorldAspNetCore.csproj
 
-# Copy everything else and build
+# Copy the rest of the app
 COPY . ./
+WORKDIR /src/HelloWorldAspNetCore
 RUN dotnet publish -c Release -o /app/out
 
 # Build runtime image
@@ -15,7 +16,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/out .
 
-# Expose port your app listens on
+# Expose the port your app listens on
 EXPOSE 80
 
 # Start the application
