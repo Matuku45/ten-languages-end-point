@@ -2,22 +2,21 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy the .csproj file explicitly from the subfolder
-COPY HelloWorldAspNetCore/*.csproj ./HelloWorldAspNetCore/
-RUN dotnet restore ./HelloWorldAspNetCore/HelloWorldAspNetCore.csproj
+# Copy .csproj and restore dependencies
+COPY *.csproj ./
+RUN dotnet restore
 
-# Copy the rest of the app
+# Copy everything else and build the app
 COPY . ./
-WORKDIR /src/HelloWorldAspNetCore
 RUN dotnet publish -c Release -o /app/out
 
-# Build runtime image
+# Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/out .
 
-# Expose the port your app listens on
+# Expose port 80
 EXPOSE 80
 
-# Start the application
+# Run the application
 ENTRYPOINT ["dotnet", "HelloWorldAspNetCore.dll"]
